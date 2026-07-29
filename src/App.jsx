@@ -549,9 +549,10 @@ function HomeScreen({ projects, ideas, onUpdateIdeas, homeTab, setHomeTab, onOpe
         </div>
       )}
 
-      <div style={{
+      <<div style={{
         position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto",
-        display: "flex", gap: 10, padding: 16, background: "linear-gradient(to top, " + C.bg + " 75%, transparent)",
+        display: "flex", gap: 10, padding: "16px 16px calc(16px + env(safe-area-inset-bottom))",
+        background: "linear-gradient(to top, " + C.bg + " 75%, transparent)",
       }}>
         <Button variant="outline" onClick={onOpenInventory} style={{ flex: 1, justifyContent: "center" }}>
           <Package size={16} /> Mi inventario
