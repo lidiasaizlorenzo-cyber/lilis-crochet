@@ -3,7 +3,7 @@ import {
   Plus, Clock, Play, Pause, Check, Trash2, ArrowLeft, Camera,
   Package, Ruler, Scissors, X, Edit2, ChevronDown, ChevronUp, RotateCcw,
   CheckCircle2, StickyNote, Users, Pencil, Tag, BarChart3, CalendarPlus,
-  Download, Search
+  Download, Search, Upload
 } from "lucide-react";
 
 const TAG_OPTIONS = ["Camiseta", "Pantalón", "Falda", "Vestido", "Bolso", "Peluche"];
@@ -378,6 +378,26 @@ export default function App() {
     }
   };
 
+  const importData = async (file) => {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const nextProjects = Array.isArray(data.projects) ? data.projects : [];
+      const nextInventory = data.inventory && typeof data.inventory === "object" ? data.inventory : emptyInventory();
+      const nextTags = Array.isArray(data.customTags) ? data.customTags : [];
+      const nextIdeas = Array.isArray(data.ideas) ? data.ideas : [];
+      setProjects(nextProjects);
+      setInventory(nextInventory);
+      setCustomTags(nextTags);
+      setIdeas(nextIdeas);
+      persist(nextProjects, nextInventory, nextTags, nextIdeas);
+      return true;
+    } catch (e) {
+      console.error("No se pudo importar", e);
+      return false;
+    }
+  };
+
   if (projects === null || inventory === null || ideas === null) {
     return (
       <div style={{ ...shellStyle, alignItems: "center", justifyContent: "center", display: "flex" }}>
@@ -423,6 +443,7 @@ export default function App() {
           onOpenInventory={() => setView("inventory")}
           onOpenStats={() => setView("stats")}
           onExport={exportData}
+          onImport={importData}
           onCreateFromIdea={(proj) => { saveProject(proj); setActiveId(proj.id); setView("project"); }}
         />
       )}
@@ -470,9 +491,11 @@ const shellStyle = {
 };
 
 // ---------- Home ----------
-function HomeScreen({ projects, ideas, onUpdateIdeas, homeTab, setHomeTab, onOpenProject, onNewProject, onOpenInventory, onOpenStats, onExport, onCreateFromIdea }) {
+function HomeScreen({ projects, ideas, onUpdateIdeas, homeTab, setHomeTab, onOpenProject, onNewProject, onOpenInventory, onOpenStats, onExport, onImport, onCreateFromIdea }) {
   const [tagFilter, setTagFilter] = useState(null);
   const [query, setQuery] = useState("");
+  const [importMsg, setImportMsg] = useState("");
+  const importRef = useRef(null);
   const active = projects.filter((p) => p.status !== "done");
   const done = projects.filter((p) => p.status === "done");
   const baseList = homeTab === "active" ? active : homeTab === "done" ? done : [];
@@ -487,6 +510,17 @@ function HomeScreen({ projects, ideas, onUpdateIdeas, homeTab, setHomeTab, onOpe
     return (i.title + " " + i.notes).toLowerCase().includes(s);
   });
 
+  const handleImportFile = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    const ok = window.confirm("Esto reemplazará lo que ves ahora por lo que hay en el archivo. ¿Seguro que quieres importar?");
+    if (!ok) return;
+    const success = await onImport(file);
+    setImportMsg(success ? "✅ Importado correctamente" : "❌ No se pudo leer ese archivo");
+    setTimeout(() => setImportMsg(""), 4000);
+  };
+
   return (
     <div>
       <div style={{ padding: "26px 18px 8px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -498,6 +532,10 @@ function HomeScreen({ projects, ideas, onUpdateIdeas, homeTab, setHomeTab, onOpe
           <p style={{ color: C.brownSoft, fontSize: 13, margin: "4px 0 0" }}>Tus proyectos, punto a punto</p>
         </div>
         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <button onClick={() => importRef.current.click()} title="Importar copia de seguridad" style={iconCircleStyle}>
+            <Upload size={16} />
+          </button>
+          <input ref={importRef} type="file" accept="application/json" style={{ display: "none" }} onChange={handleImportFile} />
           <button onClick={onExport} title="Exportar copia de seguridad" style={iconCircleStyle}>
             <Download size={16} />
           </button>
@@ -506,6 +544,10 @@ function HomeScreen({ projects, ideas, onUpdateIdeas, homeTab, setHomeTab, onOpe
           </button>
         </div>
       </div>
+
+      {importMsg && (
+        <div style={{ padding: "0 18px 8px", fontSize: 13, color: C.greenDeep, fontWeight: 700 }}>{importMsg}</div>
+      )}
 
       <div style={{ padding: "8px 18px 0" }}>
         <div style={{ position: "relative" }}>
