@@ -888,7 +888,7 @@ function NewProjectScreen({ onCancel, onCreate, availableTags, onAddCustomTag })
         </Field>
 
         <Field label="Notas (opcional)">
-          <textarea style={{ ...inputStyle, minHeight: 70 }} value={proj.notes} onChange={(e) => setProj({ ...proj, notes: e.target.value })} />
+          <textarea style={{ ...inputStyle, minHeight: 140, resize: "vertical" }} value={proj.notes} onChange={(e) => setProj({ ...proj, notes: e.target.value })} />
         </Field>
 
         <Button
@@ -1170,7 +1170,7 @@ function ProjectDetailScreen({ project, onBack, onSave, onDelete, availableTags,
         {/* Notes */}
         <SectionTitle icon={<StickyNote size={15} />} text="Notas" />
         <textarea
-          style={{ ...inputStyle, minHeight: 70, marginBottom: 24 }}
+          style={{ ...inputStyle, minHeight: 180, marginBottom: 24, resize: "vertical" }}
           value={proj.notes}
           onChange={(e) => update({ ...proj, notes: e.target.value })}
         />
